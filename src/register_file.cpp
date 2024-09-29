@@ -2,7 +2,7 @@
 #include <iostream>
 #include <iomanip>
 
-RegisterFile::RegisterFile() : regs(32, 0) , pc(0) {}
+RegisterFile::RegisterFile() : regs(32, 0), pc(0) {}
 
 void RegisterFile::write(int reg, uint64_t value) {
     if (reg != 0) {  // x0 is always 0

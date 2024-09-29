@@ -29,7 +29,7 @@ std::unique_ptr<Instruction> Instruction::decode(uint32_t machineCode) {
 }
 
 // ADDI implementation
-ADDI::ADDI(uint32_t machineCode) {
+ADDI::ADDI(uint32_t machineCode) : Instruction(machineCode) {
     rd = (machineCode >> 7) & 0x1F;
     rs1 = (machineCode >> 15) & 0x1F;
     imm = static_cast<int32_t>(machineCode) >> 20;
@@ -46,7 +46,7 @@ std::string ADDI::toString() const {
 }
 
 // ADD implementation
-ADD::ADD(uint32_t machineCode) {
+ADD::ADD(uint32_t machineCode) : Instruction(machineCode) {
     rd = (machineCode >> 7) & 0x1F;
     rs1 = (machineCode >> 15) & 0x1F;
     rs2 = (machineCode >> 20) & 0x1F;
@@ -63,7 +63,7 @@ std::string ADD::toString() const {
 }
 
 // LUI implementation
-LUI::LUI(uint32_t machineCode) {
+LUI::LUI(uint32_t machineCode) : Instruction(machineCode) {
     rd = (machineCode >> 7) & 0x1F;
     imm = static_cast<int32_t>(machineCode & 0xFFFFF000);
 }
@@ -79,7 +79,7 @@ std::string LUI::toString() const {
 }
 
 // SD implementation
-SD::SD(uint32_t machineCode) {
+SD::SD(uint32_t machineCode) : Instruction(machineCode) {
     rs1 = (machineCode >> 15) & 0x1F;
     rs2 = (machineCode >> 20) & 0x1F;
     imm = ((machineCode >> 25) & 0x7F) << 5 | ((machineCode >> 7) & 0x1F);
@@ -96,7 +96,7 @@ std::string SD::toString() const {
 }
 
 // JAL implementation
-JAL::JAL(uint32_t machineCode) {
+JAL::JAL(uint32_t machineCode) : Instruction(machineCode) {
     rd = (machineCode >> 7) & 0x1F;
     imm = ((machineCode >> 31) & 0x1) << 20 |
           ((machineCode >> 12) & 0xFF) << 12 |
@@ -118,7 +118,7 @@ std::string JAL::toString() const {
 }
 
 // BEQ implementation
-BEQ::BEQ(uint32_t machineCode) {
+BEQ::BEQ(uint32_t machineCode) : Instruction(machineCode) {
     rs1 = (machineCode >> 15) & 0x1F;
     rs2 = (machineCode >> 20) & 0x1F;
     imm = ((machineCode >> 31) & 0x1) << 12 |
@@ -142,7 +142,7 @@ std::string BEQ::toString() const {
 }
 
 // JALR implementation
-JALR::JALR(uint32_t machineCode) {
+JALR::JALR(uint32_t machineCode) : Instruction(machineCode) {
     rd = (machineCode >> 7) & 0x1F;
     rs1 = (machineCode >> 15) & 0x1F;
     imm = static_cast<int32_t>(machineCode) >> 20;
@@ -162,7 +162,7 @@ std::string JALR::toString() const {
 }
 
 // MUL implementation
-MUL::MUL(uint32_t machineCode) {
+MUL::MUL(uint32_t machineCode) : Instruction(machineCode) {
     rd = (machineCode >> 7) & 0x1F;
     rs1 = (machineCode >> 15) & 0x1F;
     rs2 = (machineCode >> 20) & 0x1F;
@@ -179,7 +179,7 @@ std::string MUL::toString() const {
 }
 
 // LW implementation
-LW::LW(uint32_t machineCode) {
+LW::LW(uint32_t machineCode) : Instruction(machineCode) {
     rd = (machineCode >> 7) & 0x1F;
     rs1 = (machineCode >> 15) & 0x1F;
     imm = static_cast<int32_t>(machineCode) >> 20;
@@ -187,7 +187,8 @@ LW::LW(uint32_t machineCode) {
 
 void LW::execute(RegisterFile& rf, Memory& mem) {
     uint64_t addr = rf.read(rs1) + imm;
-    rf.write(rd, mem.read32(addr));
+    uint32_t value = mem.read32(addr);
+    rf.write(rd, static_cast<int64_t>(static_cast<int32_t>(value))); // Sign-extend to 64 bits
 }
 
 std::string LW::toString() const {
@@ -197,7 +198,7 @@ std::string LW::toString() const {
 }
 
 // SW implementation
-SW::SW(uint32_t machineCode) {
+SW::SW(uint32_t machineCode) : Instruction(machineCode) {
     rs1 = (machineCode >> 15) & 0x1F;
     rs2 = (machineCode >> 20) & 0x1F;
     imm = ((machineCode >> 25) & 0x7F) << 5 | ((machineCode >> 7) & 0x1F);
@@ -205,7 +206,8 @@ SW::SW(uint32_t machineCode) {
 
 void SW::execute(RegisterFile& rf, Memory& mem) {
     uint64_t addr = rf.read(rs1) + imm;
-    mem.write32(addr, rf.read(rs2));
+    uint32_t value = static_cast<uint32_t>(rf.read(rs2));
+    mem.write32(addr, value);
 }
 
 std::string SW::toString() const {
@@ -215,7 +217,7 @@ std::string SW::toString() const {
 }
 
 // BLT implementation
-BLT::BLT(uint32_t machineCode) {
+BLT::BLT(uint32_t machineCode) : Instruction(machineCode) {
     rs1 = (machineCode >> 15) & 0x1F;
     rs2 = (machineCode >> 20) & 0x1F;
     imm = ((machineCode >> 31) & 0x1) << 12 |

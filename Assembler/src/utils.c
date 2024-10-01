@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <ctype.h>
 #include "../include/utils.h"
 
@@ -111,54 +110,57 @@ char *trim(char *str)
     return str;
 }
 
-int parse_labels(const char* filename, Label* labels, int* label_count)
-{
+int parse_labels(const char* filename, Label* labels, int* label_count) {
     FILE* input_file;
     char line[MAX_LABEL_LENGTH];
     int pc = 0;
     int raw_line_count = 0;
+    int in_data_section = 0;
+    int in_text_section = 0;
 
-    //printf("Attempting to open file: %s\n", filename);
     input_file = fopen(filename, "r");
-    if (input_file == NULL)
-    {
+    if (input_file == NULL) {
         printf("Error: Unable to open input file: %s\n", filename);
         return 0;
     }
 
     *label_count = 0;
 
-    while (fgets(line, sizeof(line), input_file))
-    {
+    while (fgets(line, sizeof(line), input_file)) {
         raw_line_count++;
         line[strcspn(line, "\n")] = 0;
 
-        if (line[0] == ';' || line[0] == '\0')
-        {
+        if (line[0] == ';' || line[0] == '\0') {
             continue;
         }
 
         char* comment = strchr(line, ';');
-        if (comment != NULL)
-        {
+        if (comment != NULL) {
             *comment = '\0';
         }
 
         char* trimmed_line = trim(line);
 
+        // Handle section directives
+        if (strcmp(trimmed_line, ".data") == 0) {
+            in_data_section = 1;
+            in_text_section = 0;
+            continue;
+        } else if (strcmp(trimmed_line, ".text") == 0) {
+            in_data_section = 0;
+            in_text_section = 1;
+            continue;
+        }
+
         char* colon = strchr(trimmed_line, ':');
-        if (colon != NULL)
-        {
+        if (colon != NULL) {
             *colon = '\0';
             char* label_name = trim(trimmed_line);
             
-            if (*label_count < MAX_LABELS)
-            {
+            if (*label_count < MAX_LABELS) {
                 // Check for duplicate labels
-                for (int i = 0; i < *label_count; i++)
-                {
-                    if (strcasecmp(labels[i].name, label_name) == 0)
-                    {
+                for (int i = 0; i < *label_count; i++) {
+                    if (strcasecmp(labels[i].name, label_name) == 0) {
                         printf("Error at line %d: Duplicate label '%s' (previously defined at address 0x%x)\n", 
                                raw_line_count, label_name, labels[i].address);
                         fclose(input_file);
@@ -170,28 +172,48 @@ int parse_labels(const char* filename, Label* labels, int* label_count)
                 labels[*label_count].name[MAX_LABEL_LENGTH - 1] = '\0';
                 labels[*label_count].address = pc;
                 (*label_count)++;
-            }
-            else
-            {
+            } else {
                 printf("Error at line %d: Maximum number of labels (%d) exceeded\n", raw_line_count, MAX_LABELS);
                 fclose(input_file);
                 return 0;
             }
 
             char* instruction = trim(colon + 1);
-            if (strlen(instruction) > 0)
-            {
-                pc += 4;
+            if (strlen(instruction) > 0) {
+                if (in_text_section) {
+                    pc += 4;
+                } else if (in_data_section) {
+                    // Increment pc based on data type
+                    if (strstr(instruction, ".byte") != NULL) {
+                        pc += 1;
+                    } else if (strstr(instruction, ".half") != NULL) {
+                        pc += 2;
+                    } else if (strstr(instruction, ".word") != NULL) {
+                        pc += 4;
+                    } else if (strstr(instruction, ".dword") != NULL) {
+                        pc += 8;
+                    }
+                }
             }
-        }
-        else if (strlen(trimmed_line) > 0)
-        {
-            pc += 4;
+        } else if (strlen(trimmed_line) > 0) {
+            if (in_text_section) {
+                pc += 4;
+            } else if (in_data_section) {
+                // Increment pc based on data type
+                if (strstr(trimmed_line, ".byte") != NULL) {
+                    pc += 1;
+                } else if (strstr(trimmed_line, ".half") != NULL) {
+                    pc += 2;
+                } else if (strstr(trimmed_line, ".word") != NULL) {
+                    pc += 4;
+                } else if (strstr(trimmed_line, ".dword") != NULL) {
+                    pc += 8;
+                }
+            }
         }
     }
 
-    if (ferror(input_file))
-    {
+    if (ferror(input_file)) {
         printf("Error: Failed to read the file\n");
         fclose(input_file);
         return 0;

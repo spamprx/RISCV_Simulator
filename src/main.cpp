@@ -32,6 +32,7 @@ int main() {
                 std::cout << "Successfully executed load_input.sh" << std::endl;
                 // Load the generated input.hex file
                 sim.loadProgram("./input/input.hex");
+                sim.loadDataSection("./input/input.s");
             } else {
                 std::cerr << "Error executing load_input.sh" << std::endl;
             }

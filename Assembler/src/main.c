@@ -6,78 +6,128 @@
 #include "../include/parser.h"
 #include "../include/utils.h"
 
-// Define a structure to hold both machine code and corresponding assembly instruction
-typedef struct
-{
+#define MAX_DATA_SIZE 1024
+
+typedef struct {
     uint32_t machine_code;
     char instruction[MAX_LINE_LENGTH];
 } Instruction;
 
-int main()
-{
-    // Declare file pointers and variables
+typedef struct {
+    uint64_t data;
+    int size; // 1 for byte, 2 for half, 4 for word, 8 for dword
+} DataItem;
+
+int main() {
     FILE *input_file, *output_file;
     char line[MAX_LINE_LENGTH];
     char instructions[MAX_LINES][MAX_LINE_LENGTH];
     Label labels[MAX_LABELS];
     Instruction encoded_instructions[MAX_LINES];
+    DataItem data_section[MAX_DATA_SIZE];
     int line_count = 0;
     int label_count = 0;
     int encoded_count = 0;
+    int data_count = 0;
     int pc = 0;
-
+    int in_data_section = 0;
+    int in_text_section = 0;
 
     // First pass: parse labels
-    if (!parse_labels("input.s", labels, &label_count))
-    {
+    if (!parse_labels("input.s", labels, &label_count)) {
         printf("Error parsing labels\n");
         return 1;
     }
 
     // Second Pass: Read and process the input file
     input_file = fopen("input.s", "r");
-    if (input_file == NULL)
-    {
+    if (input_file == NULL) {
         printf("Error opening input file.\n");
         return 1;
     }
 
     pc = 0;
     int raw_line_count = 0;
-    while (fgets(line, sizeof(line), input_file) && line_count < MAX_LINES)
-    {
+    while (fgets(line, sizeof(line), input_file) && line_count < MAX_LINES) {
         raw_line_count++;
         line[strcspn(line, "\n")] = 0; // Remove newline character
         char *trimmed_line = trim(line);
 
-        // Skip comments, empty lines, and lines containing only labels
-        if (trimmed_line[0] == ';' || trimmed_line[0] == '\0')
-        {
+        // Skip comments and empty lines
+        if (trimmed_line[0] == ';' || trimmed_line[0] == '\0') {
+            continue;
+        }
+
+        // Handle section directives
+        if (strcmp(trimmed_line, ".data") == 0) {
+            in_data_section = 1;
+            in_text_section = 0;
+            continue;
+        } else if (strcmp(trimmed_line, ".text") == 0) {
+            in_data_section = 0;
+            in_text_section = 1;
             continue;
         }
 
         // Handle labels
         char *colon = strchr(trimmed_line, ':');
-        if (colon != NULL)
-        {
+        if (colon != NULL) {
             trimmed_line = trim(colon + 1);
-            if (trimmed_line[0] == '\0')
-            {
+            if (trimmed_line[0] == '\0') {
                 continue;
             }
         }
 
         // Remove inline comments
         char *comment = strchr(trimmed_line, ';');
-        if (comment != NULL)
-        {
+        if (comment != NULL) {
             *comment = '\0';
             trimmed_line = trim(trimmed_line);
         }
 
-        // Store the instruction
-        if (strlen(trimmed_line) > 0)
-        {
+        // Process data section
+        if (in_data_section) {
+            char directive[10];
+            char value[256];
+            if (sscanf(trimmed_line, "%9s %255[^\n]", directive, value) == 2) {
+                if (strcmp(directive, ".byte") == 0) {
+                    char *token = strtok(value, ",");
+                    while (token != NULL && data_count < MAX_DATA_SIZE) {
+                        data_section[data_count].data = (uint8_t)strtoul(token, NULL, 0);
+                        data_section[data_count].size = 1;
+                        data_count++;
+                        token = strtok(NULL, ",");
+                    }
+                } else if (strcmp(directive, ".half") == 0) {
+                    char *token = strtok(value, ",");
+                    while (token != NULL && data_count < MAX_DATA_SIZE) {
+                        data_section[data_count].data = (uint16_t)strtoul(token, NULL, 0);
+                        data_section[data_count].size = 2;
+                        data_count++;
+                        token = strtok(NULL, ",");
+                    }
+                } else if (strcmp(directive, ".word") == 0) {
+                    char *token = strtok(value, ",");
+                    while (token != NULL && data_count < MAX_DATA_SIZE) {
+                        data_section[data_count].data = (uint32_t)strtoul(token, NULL, 0);
+                        data_section[data_count].size = 4;
+                        data_count++;
+                        token = strtok(NULL, ",");
+                    }
+                } else if (strcmp(directive, ".dword") == 0) {
+                    char *token = strtok(value, ",");
+                    while (token != NULL && data_count < MAX_DATA_SIZE) {
+                        data_section[data_count].data = strtoull(token, NULL, 0);
+                        data_section[data_count].size = 8;
+                        data_count++;
+                        token = strtok(NULL, ",");
+                    }
+                }
+            }
+        }
+
+        // Process text section
+        if (in_text_section && strlen(trimmed_line) > 0) {
             strcpy(instructions[line_count], trimmed_line);
             line_count++;
             pc += 4;
@@ -250,12 +300,12 @@ int main()
                 printf("Error: Invalid register in instruction at line %d\n", i + 1);
                 continue;
             }
-            if(parsed < 4 ){
-                printf("Error:Insufficent number of operands given to %s at line %d",inst,i+1);
-            }
-            else if(parsed > 4){
-                printf("Error: Too many operands given to %s at line %d",inst,i+1);
-            }
+            // if(parsed < 4 ){
+            //     printf("Error:Insufficent number of operands given to %s at line %d",inst,i+1);
+            // }
+            // else if(parsed > 4){
+            //     printf("Error: Too many operands given to %s at line %d",inst,i+1);
+            // }
             instr_machine_code = parse_jalr(op1, op2);
         }
         else if (strcmp(inst, "addw") == 0 || strcmp(inst, "subw") == 0 ||

@@ -23,6 +23,7 @@ public:
         callStack.push_back("main: 1");
     }
     void loadProgram(const std::string& filename);
+    void loadDataSection(const std::string& filename);
     void run();
     void step();
     void printRegs();

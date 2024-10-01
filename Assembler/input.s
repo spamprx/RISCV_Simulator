@@ -1,3 +1,7 @@
+.data
+.dword 0x037481702930100
+.word 0x10294701
+.text
 addi x2, x0, 5
 addi x3, x0, 10
 add x1, x2, x3

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 
 
 void Simulator::loadProgram(const std::string& filename) {
@@ -26,6 +27,91 @@ void Simulator::loadProgram(const std::string& filename) {
     std::cout << "Loaded " << machineCode.size() << " instructions:" << std::endl;
     for (size_t i = 0; i < machineCode.size(); ++i) {
         std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0') << machineCode[i] << std::endl;
+    }
+}
+
+void Simulator::loadDataSection(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + filename);
+    }
+
+    uint64_t address = 0x10000; // Starting address for data section
+    bool inDataSection = false;
+    std::string line;
+
+    auto isHexChar = [](char c) { return std::isxdigit(static_cast<unsigned char>(c)); };
+
+    while (std::getline(file, line)) {
+        // Remove leading and trailing whitespace
+        line.erase(0, line.find_first_not_of(" \t"));
+        line.erase(line.find_last_not_of(" \t") + 1);
+
+        if (line.empty() || line[0] == '#' || line[0] == ';') continue; // Skip comments and empty lines
+
+        std::istringstream iss(line);
+        std::string directive;
+        iss >> directive;
+
+        if (directive == ".data") {
+            inDataSection = true;
+            continue;
+        } else if (directive == ".text") {
+            inDataSection = false;
+            break;
+        }
+
+        if (!inDataSection) continue;
+
+        std::vector<uint64_t> values;
+        std::string valueStr;
+
+        while (iss >> valueStr) {
+            if (valueStr.substr(0, 2) == "0x") {
+                valueStr = valueStr.substr(2);
+            }
+            if (std::all_of(valueStr.begin(), valueStr.end(), isHexChar)) {
+                values.push_back(std::stoull(valueStr, nullptr, 16));
+            }
+        }
+
+        for (uint64_t value : values) {
+            if (directive == ".byte") {
+                mem.write8(address, static_cast<uint8_t>(value));
+                std::cout << "Writing byte: 0x" << std::hex << std::setw(2) << std::setfill('0') << value
+                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
+                address += 1;
+            } else if (directive == ".half" || directive == ".short") {
+                mem.write16(address, static_cast<uint16_t>(value));
+                std::cout << "Writing half: 0x" << std::hex << std::setw(4) << std::setfill('0') << value
+                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
+                address += 2;
+            } else if (directive == ".word" || directive == ".long") {
+                mem.write32(address, static_cast<uint32_t>(value));
+                std::cout << "Writing word: 0x" << std::hex << std::setw(8) << std::setfill('0') << value
+                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
+                address += 4;
+            } else if (directive == ".dword" || directive == ".quad") {
+                mem.write64(address, value);
+                std::cout << "Writing dword: 0x" << std::hex << std::setw(16) << std::setfill('0') << value
+                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
+                address += 8;
+            } else {
+                std::cerr << "Unknown directive: " << directive << std::endl;
+            }
+        }
+    }
+
+    std::cout << "Data section loaded into memory." << std::endl;
+    
+    // Print the loaded data for verification
+    std::cout << "Loaded data section:" << std::endl;
+    for (uint64_t addr = 0x10000; addr < address; addr += 8) {
+        std::cout << "0x" << std::hex << std::setw(16) << std::setfill('0') << addr << ": ";
+        for (int i = 0; i < 8; ++i) {
+            std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(mem.read8(addr + i)) << " ";
+        }
+        std::cout << std::endl;
     }
 }
 

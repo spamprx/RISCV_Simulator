@@ -437,7 +437,7 @@ uint32_t parse_jalr(char *rd, char *offset_rs1)
 
     //printf("%u",imm_val);
 
-    return (imm_val & 0xFFF) | (rs1_num << 15) | (funct3 << 12) | (rd_num << 7) | opcode;
+    return (imm_val & 0xFFF) << 20 | (rs1_num << 15) | (funct3 << 12) | (rd_num << 7) | opcode;
 }
 
 /**

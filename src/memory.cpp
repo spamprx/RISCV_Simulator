@@ -45,3 +45,43 @@ uint32_t Memory::read32(uint64_t address) const {
     }
     return value;
 }
+
+void Memory::write16(uint64_t address, uint32_t value) {
+    if (!isValidAddress(address) || !isValidAddress(address + 1)) {
+        throw std::out_of_range("Memory write out of bounds");
+    }
+    for (int i = 0; i < 2; ++i) {
+        mem[address + i] = (value >> (i * 8)) & 0xFF;
+    }
+}
+
+uint32_t Memory::read16(uint64_t address) const {
+    if (!isValidAddress(address) || !isValidAddress(address + 1)) {
+        throw std::out_of_range("Memory read out of bounds");
+    }
+    uint32_t value = 0;
+    for (int i = 0; i < 2; ++i) {
+        value |= static_cast<uint32_t>(mem[address + i]) << (i * 8);
+    }
+    return value;
+}
+
+void Memory::write8(uint64_t address, uint32_t value) {
+    if (!isValidAddress(address) || !isValidAddress(address)) {
+        throw std::out_of_range("Memory write out of bounds");
+    }
+    for (int i = 0; i < 1; ++i) {
+        mem[address + i] = (value >> (i * 8)) & 0xFF;
+    }
+}
+
+uint32_t Memory::read8(uint64_t address) const {
+    if (!isValidAddress(address) || !isValidAddress(address )) {
+        throw std::out_of_range("Memory read out of bounds");
+    }
+    uint32_t value = 0;
+    for (int i = 0; i < 1; ++i) {
+        value |= static_cast<uint32_t>(mem[address + i]) << (i * 8);
+    }
+    return value;
+}

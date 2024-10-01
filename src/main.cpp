@@ -1,7 +1,6 @@
 #include "../include/simulator.h"
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <string>
 
 int main() {
@@ -9,14 +8,14 @@ int main() {
     std::string command;
 
     // Automatically load the input file at startup
-    std::string inputFile = "input/input.hex";
-    std::ifstream file(inputFile);
-    if (file.good()) {
-        sim.loadProgram(inputFile);
-        std::cout << "Loaded program: " << inputFile << std::endl;
-    } else {
-        std::cerr << "Error: Could not open input file: " << inputFile << std::endl;
-    }
+    // std::string inputFile = "input/input.hex";
+    // std::ifstream file(inputFile);
+    // if (file.good()) {
+    //     sim.loadProgram(inputFile);
+    //     std::cout << "Loaded program: " << inputFile << std::endl;
+    // } else {
+    //     std::cerr << "Error: Could not open input file: " << inputFile << std::endl;
+    // }
 
     while (true) {
         std::cout << "> ";
@@ -25,7 +24,20 @@ int main() {
         std::string cmd;
         iss >> cmd;
 
-        if (cmd == "run") {
+
+        if (cmd == "load" && iss >> cmd && cmd == "input.s") {
+            // Execute the bash script
+            int result = system("./scripts/load_input.sh load input.s");
+            if (result == 0) {
+                std::cout << "Successfully executed load_input.sh" << std::endl;
+                // Load the generated input.hex file
+                sim.loadProgram("./input/input.hex");
+            } else {
+                std::cerr << "Error executing load_input.sh" << std::endl;
+            }
+        }
+    
+        else if (cmd == "run") {
             sim.run();
         } else if (cmd == "step") {
             sim.step();

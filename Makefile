@@ -29,11 +29,8 @@ clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 run: $(EXECUTABLE)
-	@if [ -f "$(INPUT_FILE)" ]; then \
-		./$(EXECUTABLE); \
-	else \
-		echo "Error: No input file found at $(INPUT_FILE)"; \
-	fi
+		./$(EXECUTABLE)
+	
 
 -include $(OBJECTS:.o=.d)
 

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <iomanip>
 
-RegisterFile::RegisterFile() : regs(32, 0), pc(0) {}
+RegisterFile::RegisterFile() : regs(33, 0) {}  // 32 general-purpose registers + PC
 
 void RegisterFile::write(int reg, uint64_t value) {
     if (reg != 0) {  // x0 is always 0
@@ -15,8 +15,12 @@ uint64_t RegisterFile::read(int reg) const {
 }
 
 void RegisterFile::printRegs() const {
-    for (int i = 0; i < 32; ++i) {
-        std::cout << "x" << std::dec << std::setfill('0') << std::setw(2) << i << " = ";
+    for (int i = 0; i < 33; ++i) {
+        if (i == 32) {
+            continue;
+        } else {
+            std::cout << "x" << std::dec << std::setfill('0') << std::setw(2) << i << " = ";
+        }
         if (regs[i] == 0) {
             std::cout << "0x0";
         } else {

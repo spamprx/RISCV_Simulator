@@ -47,5 +47,10 @@ public:
     void listBreakpoints() const;
 
     bool isBreakpoint() const;
-    void printExecutedInstruction(const std::string& instruction);
+
+    void printTextSection() const;
+    void printDataSection() const;
+
+    void showHelp() const;
+
 };

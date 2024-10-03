@@ -1,6 +1,8 @@
-.data
-addi x5, x5, 0
-lui x4, 0x10
-addi x5, x5, -1 
-sd x5, 2(x4) 
-addi x5, x5, 1
+.text
+main:
+    addi a0 ,a0, 5
+    addi a1,a1, 6
+    and a2, a0, a1 
+    or a3, a0, a1  
+    xor a4, a0, a1 
+    lui a7, 10

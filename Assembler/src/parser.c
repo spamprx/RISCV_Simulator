@@ -338,7 +338,7 @@ uint32_t parse_b_type(char *inst, char *rs1, char *rs2, char *label, int pc, Lab
         return 0;
     }
 
-    offset -= 4;
+   // offset -= 4;
     printf("%d\n",offset);
     
     offset = offset >> 1;
@@ -405,11 +405,12 @@ uint32_t parse_j_type(char *inst, char *rd, char *label, int pc, Label *labels, 
     uint32_t rd_num = get_register_number(rd);
     int label_addr = find_label(label, labels, label_count);
 
-    int32_t offset = (label_addr - pc) << 0 ; 
+    int32_t offset = (label_addr - pc)  ; 
     
-    offset = offset - 4;
+    //offset = offset - 4;
 
     printf("%d\n",offset);
+
     offset = offset >> 1;
 
     if (offset < -524288 || offset > 524287)

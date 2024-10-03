@@ -29,7 +29,7 @@ int main() {
             // Execute the bash script
             int result = system("./scripts/load_input.sh load input.s");
             if (result == 0) {
-                std::cout << "Successfully executed load_input.sh" << std::endl;
+                //std::cout << "Successfully executed load_input.sh" << std::endl;
                 // Load the generated input.hex file
                 sim.loadProgram("./input/input.hex");
                 sim.loadDataSection("./input/input.s");
@@ -70,9 +70,18 @@ int main() {
                 std::cout << "Unknown command" << std::endl;
             }
         } else if (cmd == "exit") {
-            std::cout << "Exiting the simulator" << std::endl;
+            std::cout << "Exited the simulator" << std::endl;
             break;
-        } else {
+        } 
+        else if (cmd == "text") {
+            sim.printTextSection();
+        }
+        else if (cmd == "data") {
+            sim.printDataSection();
+        }
+        else if(cmd == "help"){
+            sim.showHelp();
+        }else {
             std::cout << "Unknown command" << std::endl;
         }
         

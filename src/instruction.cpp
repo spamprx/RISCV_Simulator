@@ -125,7 +125,7 @@ std::unique_ptr<Instruction> Instruction::decode(uint32_t machineCode) {
 
 // std::string LB::toString() const {
 //     std::stringstream ss;
-//     ss << "LB x" << rd << ", " << imm << "(x" << rs1 << ")";
+//     ss << "lb x" << rd << ", " << imm << "(x" << rs1 << ")";
 //     return ss.str();
 // }
 
@@ -143,7 +143,7 @@ std::unique_ptr<Instruction> Instruction::decode(uint32_t machineCode) {
 
 // std::string LH::toString() const {
 //     std::stringstream ss;
-//     ss << "LH x" << rd << ", " << imm << "(x" << rs1 << ")";
+//     ss << "lh x" << rd << ", " << imm << "(x" << rs1 << ")";
 //     return ss.str();
 // }
 
@@ -161,7 +161,7 @@ void LW::execute(RegisterFile& rf, Memory& mem) {
 
 std::string LW::toString() const {
     std::stringstream ss;
-    ss << "LW x" << rd << ", " << imm << "(x" << rs1 << ")";
+    ss << "lw x" << rd << ", " << imm << "(x" << rs1 << ")";
     return ss.str();
 }
 
@@ -187,7 +187,7 @@ void LD::execute(RegisterFile& rf, Memory& mem) {
 
 std::string LD::toString() const {
     std::stringstream ss;
-    ss << "LD x" << rd << ", " << imm << "(x" << rs1 << ")";
+    ss << "ld x" << rd << ", " << imm << "(x" << rs1 << ")";
     return ss.str();
 }
 
@@ -213,7 +213,7 @@ uint64_t LD::getJumpAddress(const std::unordered_map<std::string, uint64_t>& /* 
 
 // std::string LBU::toString() const {
 //     std::stringstream ss;
-//     ss << "LBU x" << rd << ", " << imm << "(x" << rs1 << ")";
+//     ss << "lbu x" << rd << ", " << imm << "(x" << rs1 << ")";
 //     return ss.str();
 // }
 
@@ -231,7 +231,7 @@ uint64_t LD::getJumpAddress(const std::unordered_map<std::string, uint64_t>& /* 
 
 // std::string LHU::toString() const {
 //     std::stringstream ss;
-//     ss << "LHU x" << rd << ", " << imm << "(x" << rs1 << ")";
+//     ss << "lhu x" << rd << ", " << imm << "(x" << rs1 << ")";
 //     return ss.str();
 // }
 
@@ -249,7 +249,7 @@ void LWU::execute(RegisterFile& rf, Memory& mem) {
 
 std::string LWU::toString() const {
     std::stringstream ss;
-    ss << "LWU x" << rd << ", " << imm << "(x" << rs1 << ")";
+    ss << "lwu x" << rd << ", " << imm << "(x" << rs1 << ")";
     return ss.str();
 }
 
@@ -274,7 +274,7 @@ void ADDI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string ADDI::toString() const {
     std::stringstream ss;
-    ss << "ADDI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "addi x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 bool ADDI::isJump() const {
@@ -297,7 +297,7 @@ void SLTI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLTI::toString() const {
     std::stringstream ss;
-    ss << "SLTI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "slti x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -321,7 +321,7 @@ void SLTIU::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLTIU::toString() const {
     std::stringstream ss;
-    ss << "SLTIU x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "sltiu x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -346,7 +346,7 @@ void XORI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string XORI::toString() const {
     std::stringstream ss;
-    ss << "XORI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "xori x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -370,7 +370,7 @@ void ORI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string ORI::toString() const {
     std::stringstream ss;
-    ss << "ORI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "ori x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -394,7 +394,7 @@ void ANDI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string ANDI::toString() const {
     std::stringstream ss;
-    ss << "ANDI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "andi x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -418,7 +418,7 @@ void SLLI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLLI::toString() const {
     std::stringstream ss;
-    ss << "SLLI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "slli x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -442,7 +442,7 @@ void SRLI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRLI::toString() const {
     std::stringstream ss;
-    ss << "SRLI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "srli x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -466,7 +466,7 @@ void SRAI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRAI::toString() const {
     std::stringstream ss;
-    ss << "SRAI x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "srai x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -492,7 +492,7 @@ void ADDIW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string ADDIW::toString() const {
     std::stringstream ss;
-    ss << "ADDIW x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "addiw x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -518,7 +518,7 @@ void SLLIW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLLIW::toString() const {
     std::stringstream ss;
-    ss << "SLLIW x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "slliw x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -544,7 +544,7 @@ void SRLIW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRLIW::toString() const {
     std::stringstream ss;
-    ss << "SRLIW x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "srliw x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -570,7 +570,7 @@ void SRAIW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRAIW::toString() const {
     std::stringstream ss;
-    ss << "SRAIW x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "sraiw x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -596,7 +596,7 @@ uint64_t SRAIW::getJumpAddress(const std::unordered_map<std::string, uint64_t>& 
 
 // std::string SB::toString() const {
 //     std::stringstream ss;
-//     ss << "SB x" << rs2 << ", " << imm << "(x" << rs1 << ")";
+//     ss << "sb x" << rs2 << ", " << imm << "(x" << rs1 << ")";
 //     return ss.str();
 // }
 
@@ -613,7 +613,7 @@ uint64_t SRAIW::getJumpAddress(const std::unordered_map<std::string, uint64_t>& 
 
 // std::string SH::toString() const {
 //     std::stringstream ss;
-//     ss << "SH x" << rs2 << ", " << imm << "(x" << rs1 << ")";
+//     ss << "sh x" << rs2 << ", " << imm << "(x" << rs1 << ")";
 //     return ss.str();
 // }
 
@@ -630,7 +630,7 @@ void SW::execute(RegisterFile& rf, Memory& mem) {
 
 std::string SW::toString() const {
     std::stringstream ss;
-    ss << "SW x" << rs2 << ", " << imm << "(x" << rs1 << ")";
+    ss << "sw x" << rs2 << ", " << imm << "(x" << rs1 << ")";
     return ss.str();
 }
 
@@ -655,7 +655,7 @@ void SD::execute(RegisterFile& rf, Memory& mem) {
 
 std::string SD::toString() const {
     std::stringstream ss;
-    ss << "SD x" << rs2 << ", " << imm << "(x" << rs1 << ")";
+    ss << "sd x" << rs2 << ", " << imm << "(x" << rs1 << ")";
     return ss.str();
 }
 
@@ -680,7 +680,7 @@ void ADD::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string ADD::toString() const {
     std::stringstream ss;
-    ss << "ADD x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "add x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -704,7 +704,7 @@ void SUB::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SUB::toString() const {
     std::stringstream ss;
-    ss << "SUB x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "sub x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -728,7 +728,7 @@ void SLL::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLL::toString() const {
     std::stringstream ss;
-    ss << "SLL x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "sll x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -752,7 +752,7 @@ void SLT::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLT::toString() const {
     std::stringstream ss;
-    ss << "SLT x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "slt x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -776,7 +776,7 @@ void SLTU::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLTU::toString() const {
     std::stringstream ss;
-    ss << "SLTU x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "sltu x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -801,7 +801,7 @@ void XOR::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string XOR::toString() const {
     std::stringstream ss;
-    ss << "XOR x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "xor x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -825,7 +825,7 @@ void SRL::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRL::toString() const {
     std::stringstream ss;
-    ss << "SRL x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "srl x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -849,7 +849,7 @@ void SRA::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRA::toString() const {
     std::stringstream ss;
-    ss << "SRA x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "sra x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -873,7 +873,7 @@ void OR::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string OR::toString() const {
     std::stringstream ss;
-    ss << "OR x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "or x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -897,7 +897,7 @@ void AND::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string AND::toString() const {
     std::stringstream ss;
-    ss << "AND x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "and x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -923,7 +923,7 @@ void ADDW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string ADDW::toString() const {
     std::stringstream ss;
-    ss << "ADDW x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "addw x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -948,7 +948,7 @@ void SUBW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SUBW::toString() const {
     std::stringstream ss;
-    ss << "SUBW x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "subw x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -973,7 +973,7 @@ void SLLW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SLLW::toString() const {
     std::stringstream ss;
-    ss << "SLLW x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "sllw x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -998,7 +998,7 @@ void SRLW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRLW::toString() const {
     std::stringstream ss;
-    ss << "SRLW x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "srlw x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -1023,7 +1023,7 @@ void SRAW::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string SRAW::toString() const {
     std::stringstream ss;
-    ss << "SRAW x" << rd << ", x" << rs1 << ", x" << rs2;
+    ss << "sraw x" << rd << ", x" << rs1 << ", x" << rs2;
     return ss.str();
 }
 
@@ -1080,7 +1080,7 @@ void JAL::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string JAL::toString() const {
     std::stringstream ss;
-    ss << "JAL x" << rd << ", " << (static_cast<int32_t>(imm));
+    ss << "jal x" << rd << ", " << (static_cast<int32_t>(imm));
     return ss.str();
 }
 
@@ -1110,7 +1110,7 @@ void JALR::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string JALR::toString() const {
     std::stringstream ss;
-    ss << "JALR x" << rd << ", x" << rs1 << ", " << imm;
+    ss << "jalr x" << rd << ", x" << rs1 << ", " << imm;
     return ss.str();
 }
 
@@ -1146,7 +1146,7 @@ void BEQ::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string BEQ::toString() const {
     std::stringstream ss;
-    ss << "BEQ x" << rs1 << ", x" << rs2 << ", " << (static_cast<int32_t>(imm));
+    ss << "beq x" << rs1 << ", x" << rs2 << ", " << (static_cast<int32_t>(imm));
     return ss.str();
 }
 
@@ -1182,7 +1182,7 @@ void BNE::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string BNE::toString() const {
     std::stringstream ss;
-    ss << "BNE x" << rs1 << ", x" << rs2 << ", " << imm;
+    ss << "bne x" << rs1 << ", x" << rs2 << ", " << imm;
     return ss.str();
 }
 
@@ -1218,7 +1218,7 @@ void BLT::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string BLT::toString() const {
     std::stringstream ss;
-    ss << "BLT x" << rs1 << ", x" << rs2 << ", " << imm;
+    ss << "blt x" << rs1 << ", x" << rs2 << ", " << imm;
     return ss.str();
 }
 
@@ -1254,7 +1254,7 @@ void BGE::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string BGE::toString() const {
     std::stringstream ss;
-    ss << "BGE x" << rs1 << ", x" << rs2 << ", " << imm;
+    ss << "bge x" << rs1 << ", x" << rs2 << ", " << imm;
     return ss.str();
 }
 
@@ -1290,7 +1290,7 @@ void BLTU::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string BLTU::toString() const {
     std::stringstream ss;
-    ss << "BLTU x" << rs1 << ", x" << rs2 << ", " << imm;
+    ss << "bltu x" << rs1 << ", x" << rs2 << ", " << imm;
     return ss.str();
 }
 
@@ -1326,7 +1326,7 @@ void BGEU::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string BGEU::toString() const {
     std::stringstream ss;
-    ss << "BGEU x" << rs1 << ", x" << rs2 << ", " << imm;
+    ss << "bgeu x" << rs1 << ", x" << rs2 << ", " << imm;
     return ss.str();
 }
 
@@ -1351,7 +1351,7 @@ void LUI::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string LUI::toString() const {
     std::stringstream ss;
-        ss << "LUI x" << rd << ", 0x" << std::hex << imm << std::dec;
+        ss << "lui x" << rd << ", 0x" << std::hex << imm << std::dec;
         return ss.str();
 }
 
@@ -1375,7 +1375,7 @@ void AUIPC::execute(RegisterFile& rf, Memory& /* mem */) {
 
 std::string AUIPC::toString() const {
     std::stringstream ss;
-    ss << "AUIPC x" << rd << ", " << (imm >> 12);
+    ss << "auipc x" << rd << ", " << (imm >> 12);
     return ss.str();
 }
 

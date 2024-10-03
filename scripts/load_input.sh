@@ -30,4 +30,4 @@ make run
 cp "$ASSEMBLER_DIR/output/output.hex" "$INPUT_DIR/input.hex"
 
 # Print success message
-echo "Processing complete. input.hex has been generated in the input folder."
+#echo "Processing complete. input.hex has been generated in the input folder."

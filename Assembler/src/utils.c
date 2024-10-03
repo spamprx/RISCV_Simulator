@@ -116,7 +116,6 @@ int parse_labels(const char* filename, Label* labels, int* label_count) {
     int pc = 0;
     int raw_line_count = 0;
     int in_data_section = 0;
-    int in_text_section = 0;
 
     input_file = fopen(filename, "r");
     if (input_file == NULL) {
@@ -129,26 +128,32 @@ int parse_labels(const char* filename, Label* labels, int* label_count) {
     while (fgets(line, sizeof(line), input_file)) {
         raw_line_count++;
         line[strcspn(line, "\n")] = 0;
+        char* trimmed_line = trim(line);
 
-        if (line[0] == ';' || line[0] == '\0') {
+        // Skip comments and empty lines
+        if (trimmed_line[0] == ';' || trimmed_line[0] == '\0') {
             continue;
         }
 
-        char* comment = strchr(line, ';');
-        if (comment != NULL) {
-            *comment = '\0';
-        }
-
-        char* trimmed_line = trim(line);
-
-        // Handle section directives
+        // Check for .data and .text directives
         if (strcmp(trimmed_line, ".data") == 0) {
             in_data_section = 1;
-            in_text_section = 0;
             continue;
         } else if (strcmp(trimmed_line, ".text") == 0) {
             in_data_section = 0;
-            in_text_section = 1;
+            continue;
+        }
+
+        // Skip processing if we're in the .data section
+        if (in_data_section) {
+            continue;
+        }
+
+        // Ignore data-related directives
+        if (strncmp(trimmed_line, ".byte", 5) == 0 ||
+            strncmp(trimmed_line, ".half", 5) == 0 ||
+            strncmp(trimmed_line, ".word", 5) == 0 ||
+            strncmp(trimmed_line, ".dword", 6) == 0) {
             continue;
         }
 
@@ -180,36 +185,10 @@ int parse_labels(const char* filename, Label* labels, int* label_count) {
 
             char* instruction = trim(colon + 1);
             if (strlen(instruction) > 0) {
-                if (in_text_section) {
-                    pc += 4;
-                } else if (in_data_section) {
-                    // Increment pc based on data type
-                    if (strstr(instruction, ".byte") != NULL) {
-                        pc += 1;
-                    } else if (strstr(instruction, ".half") != NULL) {
-                        pc += 2;
-                    } else if (strstr(instruction, ".word") != NULL) {
-                        pc += 4;
-                    } else if (strstr(instruction, ".dword") != NULL) {
-                        pc += 8;
-                    }
-                }
+                pc += 4;
             }
         } else if (strlen(trimmed_line) > 0) {
-            if (in_text_section) {
-                pc += 4;
-            } else if (in_data_section) {
-                // Increment pc based on data type
-                if (strstr(trimmed_line, ".byte") != NULL) {
-                    pc += 1;
-                } else if (strstr(trimmed_line, ".half") != NULL) {
-                    pc += 2;
-                } else if (strstr(trimmed_line, ".word") != NULL) {
-                    pc += 4;
-                } else if (strstr(trimmed_line, ".dword") != NULL) {
-                    pc += 8;
-                }
-            }
+            pc += 4;
         }
     }
 

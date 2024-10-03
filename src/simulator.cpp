@@ -2,10 +2,31 @@
 #include "../include/instruction.h"
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <unordered_map>
 
+
+void Simulator::scanLabels(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + filename);
+    }
+
+    std::string line;
+    uint64_t address = 0;
+    while (std::getline(file, line)) {
+        size_t colonPos = line.find(':');
+        if (colonPos != std::string::npos) {
+            std::string label = line.substr(0, colonPos);
+            labels[label] = address;
+        }
+        // Assuming each line corresponds to one instruction
+        address += 4;
+    }
+}
 
 void Simulator::loadProgram(const std::string& filename) {
     std::ifstream file(filename);
@@ -14,15 +35,36 @@ void Simulator::loadProgram(const std::string& filename) {
     }
 
     machineCode.clear();
+    lineNumbers.clear();
+    labels.clear();  // Clear any existing labels
+    scanLabels(filename); // Scan for labels
+
     std::string line;
+    int lineNum = 1;
     while (std::getline(file, line)) {
+        // Check for labels
+        size_t colonPos = line.find(':');
+        if (colonPos != std::string::npos) {
+            std::string label = line.substr(0, colonPos);
+            labels[label] = lineNum;
+            line = line.substr(colonPos + 1);  // Remove the label from the line
+        }
+
         line.erase(std::remove_if(line.begin(), line.end(), ::isspace), line.end());
-        uint32_t instruction = std::stoul(line, nullptr, 16);
-        machineCode.push_back(instruction);
+        if (!line.empty()) {
+            uint32_t instruction = std::stoul(line, nullptr, 16);
+            machineCode.push_back(instruction);
+            lineNumbers.push_back(lineNum);
+        }
+        lineNum++;
     }
 
     pc = 0;
-    currentLine = 1;
+    currentLine = lineNumbers[0];
+
+    // Initialize the call stack with main
+    callStack.clear();
+    callStack.push_back({"main", currentLine});
 
     std::cout << "Loaded " << machineCode.size() << " instructions:" << std::endl;
     for (size_t i = 0; i < machineCode.size(); ++i) {
@@ -48,6 +90,13 @@ void Simulator::loadDataSection(const std::string& filename) {
         line.erase(line.find_last_not_of(" \t") + 1);
 
         if (line.empty() || line[0] == '#' || line[0] == ';') continue; // Skip comments and empty lines
+
+        // Check for label definition
+        if (line.back() == ':') {
+            std::string label = line.substr(0, line.size() - 1);
+            labels[label] = address; // Store the label with its address
+            continue;
+        }
 
         std::istringstream iss(line);
         std::string directive;
@@ -78,23 +127,15 @@ void Simulator::loadDataSection(const std::string& filename) {
         for (uint64_t value : values) {
             if (directive == ".byte") {
                 mem.write8(address, static_cast<uint8_t>(value));
-                std::cout << "Writing byte: 0x" << std::hex << std::setw(2) << std::setfill('0') << value
-                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
                 address += 1;
             } else if (directive == ".half" || directive == ".short") {
                 mem.write16(address, static_cast<uint16_t>(value));
-                std::cout << "Writing half: 0x" << std::hex << std::setw(4) << std::setfill('0') << value
-                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
                 address += 2;
             } else if (directive == ".word" || directive == ".long") {
                 mem.write32(address, static_cast<uint32_t>(value));
-                std::cout << "Writing word: 0x" << std::hex << std::setw(8) << std::setfill('0') << value
-                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
                 address += 4;
             } else if (directive == ".dword" || directive == ".quad") {
                 mem.write64(address, value);
-                std::cout << "Writing dword: 0x" << std::hex << std::setw(16) << std::setfill('0') << value
-                          << " to address 0x" << std::hex << std::setw(16) << std::setfill('0') << address << std::endl;
                 address += 8;
             } else {
                 std::cerr << "Unknown directive: " << directive << std::endl;
@@ -103,7 +144,7 @@ void Simulator::loadDataSection(const std::string& filename) {
     }
 
     std::cout << "Data section loaded into memory." << std::endl;
-    
+
     // Print the loaded data for verification
     std::cout << "Loaded data section:" << std::endl;
     for (uint64_t addr = 0x10000; addr < address; addr += 8) {
@@ -115,15 +156,43 @@ void Simulator::loadDataSection(const std::string& filename) {
     }
 }
 
+void Simulator::updateCallStack(uint32_t instruction) {
+    uint32_t opcode = instruction & 0x7F;
+    uint32_t rd = (instruction >> 7) & 0x1F;
+    uint32_t rs1 = (instruction >> 15) & 0x1F;
+
+    if (opcode == 0x6F) { // JAL
+        std::string funcName = "unknown";
+        uint64_t targetAddress = pc * 4;
+        for (const auto& label : labels) {
+            if (label.second == targetAddress) {
+                funcName = label.first;
+                break;
+            }
+        }
+        callStack.push_back({funcName, currentLine});
+    } else if (opcode == 0x67 && rd == 0 && rs1 == 1) { // JALR x0, x1, 0 (return)
+        if (callStack.size() > 1) {
+            callStack.pop_back();
+        }
+    }
+
+    // Update the line number of the current function
+    if (!callStack.empty()) {
+        callStack.back().line = currentLine;
+    }
+}
+
 void Simulator::step() {
     if (pc >= machineCode.size()) {
         std::cout << "End of program reached" << std::endl;
         return;
     }
 
-    // Check for breakpoint before executing
-    if (isBreakpoint()) {
-        std::cout << "Breakpoint hit at line " << currentLine << std::endl;
+    currentLine = lineNumbers[pc];
+
+    if (breakpoints.find(currentLine) != breakpoints.end()) {
+        std::cout << "Breakpoint hit at line " << std::dec << currentLine << std::endl;
         return;
     }
 
@@ -132,23 +201,20 @@ void Simulator::step() {
     
     updateCallStack(instruction);
     
-    std::cout << "Executing: " << inst->toString() << "; PC = 0x" << std::hex << std::setw(8) << std::setfill('0') << (pc * 4) << std::endl;
-    try {
-        inst->execute(rf, mem);
+    std::cout << "Executed: " << inst->toString() << "; PC = 0x" << std::hex << std::setw(8) << std::setfill('0') << (pc * 4) << std::endl;
+    
+    uint64_t old_pc = rf.read(RegisterFile::PC);
+    inst->execute(rf, mem);
+    uint64_t new_pc = rf.read(RegisterFile::PC);
+    
+    if (new_pc == old_pc) {
+        rf.write(RegisterFile::PC, old_pc + 4);
         pc++;
-        currentLine++;
-        executedInstructions++;
-        // Update the line number in the current stack frame
-        if (!callStack.empty()) {
-            size_t colonPos = callStack.back().find(':');
-            if (colonPos != std::string::npos) {
-                callStack.back() = callStack.back().substr(0, colonPos + 1) + " " + std::to_string(currentLine);
-            }
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Error executing instruction: " << e.what() << std::endl;
-        std::cerr << "Stopping execution." << std::endl;
+    } else {
+        pc = new_pc / 4;
     }
+    
+    executedInstructions++;
 }
 
 void Simulator::run() {
@@ -173,21 +239,10 @@ void Simulator::printMem(uint64_t addr, int count) {
     std::cout << std::endl;
 }
 
-void Simulator::showStack() {
-    if (callStack.empty()) {
-        std::cout << "Call stack is empty." << std::endl;
-    } else {
-        for (auto it = callStack.rbegin(); it != callStack.rend(); ++it) {
-            std::cout << *it << std::endl;
-        }
-    }
-    std::cout << std::endl;
-}
-
 void Simulator::setBreakpoint(int line) {
     if (breakpoints.size() < 5) {
         breakpoints[line] = true;
-        std::cout << "Breakpoint set at line " << line << std::endl;
+        std::cout << "Breakpoint set at line " << std::dec << line << std::endl;
     } else {
         std::cout << "Maximum number of breakpoints (5) reached" << std::endl;
     }
@@ -196,34 +251,35 @@ void Simulator::setBreakpoint(int line) {
 
 void Simulator::deleteBreakpoint(int line) {
     if (breakpoints.erase(line) > 0) {
-        std::cout << "Breakpoint at line " << line << " deleted" << std::endl;
+        std::cout << "Breakpoint at line " << std::dec << line << " deleted" << std::endl;
     } else {
-        std::cout << "No breakpoint found at line " << line << std::endl;
+        std::cout << "No breakpoint found at line " << std::dec << line << std::endl;
     }
     std::cout << std::endl;
 }
 
-void Simulator::updateCallStack(uint32_t instruction) {
-    uint32_t opcode = instruction & 0x7F;
+bool Simulator::isBreakpoint() const {
+    return breakpoints.find(currentLine) != breakpoints.end();
+}
 
-    if (opcode == 0x6F) { // JAL
-        uint32_t rd = (instruction >> 7) & 0x1F;
-        if (rd == 1 || rd == 5) {  // Assuming x1 or x5 are used for return address
-            callStack.push_back("function_" + std::to_string(pc) + ": " + std::to_string(currentLine));
-        }
-    } else if (opcode == 0x67) { // JALR
-        uint32_t rd = (instruction >> 7) & 0x1F;
-        uint32_t rs1 = (instruction >> 15) & 0x1F;
-        if (rd == 0 && rs1 == 1) {  // Assuming this is a return instruction
-            if (callStack.size() > 1) {  // Keep at least the main function in the stack
-                callStack.pop_back();
-            }
-        } else if (rd == 1 || rd == 5) {  // Assuming this is a function call
-            callStack.push_back("function_" + std::to_string(pc) + ": " + std::to_string(currentLine));
+void Simulator::showStack() const {
+    if (callStack.empty()) {
+        std::cout << "Call stack is empty." << std::endl;
+    } else {
+        std::cout << "Call stack:" << std::endl;
+        for (const auto& frame : callStack) {
+            std::cout << frame.functionName << ":" << std::dec << frame.line << std::endl;
         }
     }
 }
 
-bool Simulator::isBreakpoint() const {
-    return breakpoints.find(currentLine) != breakpoints.end();
+void Simulator::listBreakpoints() const {
+    if (breakpoints.empty()) {
+        std::cout << "No breakpoints set." << std::endl;
+    } else {
+        std::cout << "Current breakpoints:" << std::endl;
+        for (const auto& bp : breakpoints) {
+            std::cout << "Line: " << std::dec << bp.first << std::endl;
+        }
+    }
 }

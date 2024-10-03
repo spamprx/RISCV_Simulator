@@ -62,13 +62,16 @@ int main() {
         if (strcmp(trimmed_line, ".data") == 0) {
             in_data_section = 1;
             in_text_section = 0;
-            continue;
+            continue;  
         } else if (strcmp(trimmed_line, ".text") == 0) {
             in_data_section = 0;
             in_text_section = 1;
             continue;
         }
 
+        if(strcmp(trimmed_line, ".data") != 0 && strcmp(trimmed_line, ".text") != 0){
+            in_text_section = 1;
+        }
         // Handle labels
         char *colon = strchr(trimmed_line, ':');
         if (colon != NULL) {
@@ -431,8 +434,8 @@ int main() {
         return 1;
     }
 
-    //fprintf(output_file, "Machine Code | Assembly Instruction\n");
-    //fprintf(output_file, "--------------------------------------\n");
+   // fprintf(output_file, "Machine Code | Assembly Instruction\n");
+   // fprintf(output_file, "--------------------------------------\n");
 
     for (int i = 0; i < encoded_count; i++)
     {

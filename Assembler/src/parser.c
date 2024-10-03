@@ -329,24 +329,29 @@ uint32_t parse_b_type(char *inst, char *rs1, char *rs2, char *label, int pc, Lab
         exit(1);
     }
 
-    int32_t offset = label_addr - (pc);
+    int32_t offset = label_addr - pc;
+    
+    // Verify the offset is within range and aligned
     if (offset < -4096 || offset > 4095 || (offset & 1) != 0)
     {
         printf("Error: Branch offset %d out of range or not aligned for instruction '%s'\n", offset, inst);
         return 0;
     }
 
-    //printf("%d\n",offset);
-    offset/=2;
+    offset -= 4;
+    printf("%d\n",offset);
+    
+    offset = offset >> 1;
 
-
-    uint32_t imm_12 = (offset >> 11) & 0x1;
-    uint32_t imm_11 = (offset >> 10) & 0x1;
+    // Extract the immediate bits
+    uint32_t imm_12 = (offset >> 11) & 0x1;  
+    uint32_t imm_11 = (offset >> 10) & 0x1;  
     uint32_t imm_10_5 = (offset >> 4) & 0x3F;
-    uint32_t imm_4_1 = (offset >> 0) & 0xF;
+    uint32_t imm_4_1 = (offset >> 0) & 0xF;  
 
-    return (imm_12 << 31) | (imm_10_5 << 25) | (rs2_num << 20) | (rs1_num << 15) |
-           (funct3 << 12) | (imm_4_1 << 8) | (imm_11 << 7) | opcode;
+    return (imm_12 << 31) | (imm_10_5 << 25) | (rs2_num << 20) | 
+           (rs1_num << 15) | (funct3 << 12) | (imm_4_1 << 8) | 
+           (imm_11 << 7) | opcode;
 }
 
 /**
@@ -400,17 +405,23 @@ uint32_t parse_j_type(char *inst, char *rd, char *label, int pc, Label *labels, 
     uint32_t rd_num = get_register_number(rd);
     int label_addr = find_label(label, labels, label_count);
 
-    int32_t offset = label_addr - pc;
-    if (offset < -1048576 || offset > 1048575 || (offset & 1) != 0)
+    int32_t offset = (label_addr - pc) << 0 ; 
+    
+    offset = offset - 4;
+
+    printf("%d\n",offset);
+    offset = offset >> 1;
+
+    if (offset < -524288 || offset > 524287)
     {
-        printf("Error: Jump offset %d out of range or not aligned for instruction '%s'\n", offset, inst);
+        printf("Error: Jump offset %d out of range for instruction '%s'\n", offset << 1, inst);
         return 0;
     }
 
-    uint32_t imm_20 = (offset >> 20) & 0x1;
-    uint32_t imm_19_12 = (offset >> 12) & 0xFF;
-    uint32_t imm_11 = (offset >> 11) & 0x1;
-    uint32_t imm_10_1 = (offset >> 1) & 0x3FF;
+    uint32_t imm_20 = (offset >> 19) & 0x1;
+    uint32_t imm_19_12 = (offset >> 11) & 0xFF;
+    uint32_t imm_11 = (offset >> 10) & 0x1;
+    uint32_t imm_10_1 = (offset >> 0) & 0x3FF;
 
     return (imm_20 << 31) | (imm_10_1 << 21) | (imm_11 << 20) | (imm_19_12 << 12) | (rd_num << 7) | opcode;
 }

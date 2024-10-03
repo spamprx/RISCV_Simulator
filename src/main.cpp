@@ -51,7 +51,11 @@ int main() {
             sim.printMem(addr, count);
         } else if (cmd == "show-stack") {
             sim.showStack();
-        } else if (cmd == "break") {
+
+        } else if(cmd == "list-breaks"){
+            sim.listBreakpoints();
+        }
+        else if (cmd == "break") {
             int line;
             iss >> line;
             sim.setBreakpoint(line);

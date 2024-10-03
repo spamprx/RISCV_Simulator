@@ -11,19 +11,17 @@
 
 # Set up directory variables
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo "Script directory: $SCRIPT_DIR"
 PROJECT_ROOT="$SCRIPT_DIR/.."
-echo "Project root: $PROJECT_ROOT"
 INPUT_DIR="$PROJECT_ROOT/input"
-echo "Input directory: $INPUT_DIR"
 ASSEMBLER_DIR="$PROJECT_ROOT/Assembler"
-echo "Assembler directory: $ASSEMBLER_DIR"
+
 
 # Copy input.s to Assembler input folder
 cp "$INPUT_DIR/input.s" "$ASSEMBLER_DIR/input/input.s"
 
 # Change to Assembler directory and run make commands
-cd "$ASSEMBLER_DIR"
+# shellcheck disable=SC2164
+cd "$ASSEMBLER_DIR" 
 make clean
 make
 make run

@@ -4,9 +4,12 @@
 #include "memory.h"
 #include <memory>
 #include <string>
+#include <unordered_map>
 
+// Base class for all instructions
 class Instruction {
 protected:
+    RegisterFile rf;
     uint32_t machineCode;
 
 public:
@@ -14,6 +17,11 @@ public:
     virtual ~Instruction() = default;
     virtual void execute(RegisterFile& rf, Memory& mem) = 0;
     virtual std::string toString() const = 0;
+
+    // New methods for jump handling
+    virtual bool isJump() const { return false; } // Default implementation
+    virtual uint64_t getJumpAddress(const std::unordered_map<std::string, uint64_t>& labels) const { return 0; }
+
     static std::unique_ptr<Instruction> decode(uint32_t machineCode);
 };
 
@@ -26,15 +34,13 @@ public: \
     name(uint32_t machineCode); \
     void execute(RegisterFile& rf, Memory& mem) override; \
     std::string toString() const override; \
+    bool isJump() const override; \
+    uint64_t getJumpAddress(const std::unordered_map<std::string, uint64_t>& labels) const override; \
 };
 
 // LOAD instructions
-//DECLARE_INSTRUCTION(LB)
-//DECLARE_INSTRUCTION(LH)
 DECLARE_INSTRUCTION(LW)
 DECLARE_INSTRUCTION(LD)
-//DECLARE_INSTRUCTION(LBU)
-//DECLARE_INSTRUCTION(LHU)
 DECLARE_INSTRUCTION(LWU)
 
 // OP-IMM instructions
@@ -55,8 +61,6 @@ DECLARE_INSTRUCTION(SRLIW)
 DECLARE_INSTRUCTION(SRAIW)
 
 // STORE instructions
-//DECLARE_INSTRUCTION(SB)
-//DECLARE_INSTRUCTION(SH)
 DECLARE_INSTRUCTION(SW)
 DECLARE_INSTRUCTION(SD)
 
